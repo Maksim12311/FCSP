@@ -140,7 +140,7 @@ print(" ")
 
 
 print("This is ninth task")
-grade = input("Write you grade in precentage: ")
+grade = int(input("Write you grade in precentage: "))
 if grade >= 90:
     print("Exelent")
 elif grade < 90 and grade >= 75:
@@ -173,4 +173,104 @@ print(" ")
 
 
 
+print("This is twelfth task")
+list_of_tasks = ["homework", "work", "gaming", "walking", "sleeping", "eating"]
+if len(list_of_tasks) > 5:
+    print("You have more then 5 tasks to do")
+else:
+    print("You have less then 5 tasks to do")
+print(" ")
+
+
+
+print("This is thirteenth task")
+number = int(input("Write a nimber: "))
+if number >= 0:
+    print("Number is positive")
+else:
+    print("Number is negative")
+print(" ")
+
+
+
+print("This is fourteenth task")
+number = int(input("Write a nimber: "))
+if number % 2 == 0:
+    print("Even")
+else:
+    print("Odd")
+print(" ")
+
+
+
+print("This is fifteenth task")
+dictionary_of_scores = {
+    "Max": 15,
+    "Elisa": 17,
+    "Ibrahim": 25
+}
+variant = input("Write a name: ")
+if variant in dictionary_of_scores:
+    print("This name in dictionary")
+else:
+    print("This name doesnt exist")
+print(" ")
+
+
+
+print("This is sixteenth task")
+username = input("Write the username: ")
+password = input("Write the password: ")
+if username == "admin":
+    if password == "1234":
+        print("You havew been log in")
+    else:
+        print("Wrong password")
+else:
+    print("Only admin can log in")
+print(" ")
+
+
+
+print("This is seventeenth task")
+number = int(input("Write the number: "))
+if number >= 0 and number % 2 == 0:
+    print("Your number is positive and even")
+elif number < 0 and number % 2 == 0:
+    print("Your number is negative and even")
+elif number >= 0 and number % 2 != 0:
+    print("Your number is positive and odd")
+elif number < 0 and number % 2 != 0:
+    print("Your number is negative and odd")
+print(" ")
+
+
+
+print("This is eightteenth task")
+sentence = input("Enter a sentence: ")
+if "@" in sentence:
+    print("The sentence contains the '@' symbol.")
+else:
+    print("The sentence does not contain the '@' symbol.")
+print(" ")
+
+
+
+print("This is ninteenth task")
+number = int(input("Enter a number: "))
+if 1 <= number <= 100:
+    print("The number is within the range of 1 to 100.")
+else:
+    print("The number is out of range.")
+print(" ")
+
+
+
+print("This is twentieth task")
+pet_animals = ["dog", "cat", "rabbit", "parrot", "hamster", "goldfish", "turtle", "guinea pig", "ferret"]
+animal = input("Enter an animal name with small letter: ")
+if animal not in pet_animals:
+    print("This animal not in the list")
+else:
+    print("This animal in the list")
 
