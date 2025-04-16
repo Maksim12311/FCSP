@@ -25,3 +25,21 @@ def delete_student(name):
         for student in students:
             if not student.startswith(name):
                 f.write(student)
+
+
+
+def search_students(search_term, search_by):
+    results = []
+    with open("students.txt", "r") as f:
+        students = f.readlines()
+
+    for student in students:
+        name, surname, date_of_birth, area_of_study, citizenship = student.strip().split(",")
+        
+        if search_by == "name" and search_term.lower() in name.lower():
+            results.append(student.strip())
+
+        elif search_by == "area_of_study" and search_term.lower() in area_of_study.lower():
+            results.append(student.strip())
+
+    return results
