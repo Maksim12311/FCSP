@@ -1,4 +1,4 @@
-from .information import add_student, change_information, delete_student, search_students
+from .information import add_student, change_information, delete_student, search_students, display_all_students
 
 
 
@@ -19,3 +19,6 @@ found_students_by_area = search_students(area_of_study_search, "area_of_study")
 print("\nРезультаты поиска по специальности:")
 for student in found_students_by_area:
     print(student)
+
+
+display_all_students()

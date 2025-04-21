@@ -43,3 +43,27 @@ def search_students(search_term, search_by):
             results.append(student.strip())
 
     return results
+
+
+
+def display_all_students():
+    """Display all students in a formatted way"""
+    try:
+        with open("students.txt", "r") as f:
+            students = f.readlines()
+            
+        if not students:
+            print("No students found in the system.")
+            return
+            
+        print("\nAll Students:")
+        print("-" * 80)
+        for student in students:
+            name, surname, dob, study, citizenship = student.strip().split(",")
+            print(f"Name: {name} {surname}")
+            print(f"Date of Birth: {dob}")
+            print(f"Area of Study: {study}")
+            print(f"Citizenship: {citizenship}")
+            print("-" * 80)
+    except FileNotFoundError:
+        print("Student database not found.")
