@@ -67,3 +67,23 @@ def display_all_students():
             print("-" * 80)
     except FileNotFoundError:
         print("Student database not found.")
+
+
+
+def count_students_by_area():
+    """Count how many students are in each area of study"""
+    try:
+        with open("students.txt", "r") as f:
+            students = f.readlines()
+        
+        area_counts = {}
+        for student in students:
+            _, _, _, area, _ = student.strip().split(",")
+            area_counts[area] = area_counts.get(area, 0) + 1
+        
+        print("\nStudents per Area of Study:")
+        print("-" * 30)
+        for area, count in area_counts.items():
+            print(f"{area}: {count} students")
+    except FileNotFoundError:
+        print("Student database not found.")

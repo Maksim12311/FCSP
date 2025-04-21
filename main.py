@@ -1,4 +1,4 @@
-from .information import add_student, change_information, delete_student, search_students, display_all_students
+from .information import add_student, change_information, delete_student, search_students, display_all_students, count_students_by_area
 
 
 
@@ -22,3 +22,5 @@ for student in found_students_by_area:
 
 
 display_all_students()
+
+count_students_by_area()
