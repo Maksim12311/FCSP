@@ -1,3 +1,55 @@
+import os
+
+class CourseManager:
+    def __init__(self, filename="courses.txt"):
+        self.filename = filename
+        self.courses = self.load_courses()
+
+    def load_courses(self):
+        """Load courses from file."""
+        if os.path.exists(self.filename):
+            with open(self.filename, "r") as f:
+                return [line.strip().split(",") for line in f.readlines()]
+        return []
+
+    def save_courses(self):
+        """Save courses to file."""
+        with open(self.filename, "w") as f:
+            for course in self.courses:
+                f.write(",".join(course) + "\n")
+
+    def add_course(self, course_name, teacher):
+        """Add a new course."""
+        self.courses.append([course_name, teacher])
+        self.save_courses()
+        print(f"Course '{course_name}' has been added.")
+
+    def delete_course(self, course_name):
+        """Delete course by name."""
+        self.courses = [course for course in self.courses if course[0] != course_name]
+        self.save_courses()
+        print(f"Course '{course_name}' has been deleted.")
+
+    def update_course(self, old_course_name, new_course_name, new_teacher):
+        """Update course information."""
+        for course in self.courses:
+            if course[0] == old_course_name:
+                course[0] = new_course_name
+                course[1] = new_teacher
+                self.save_courses()
+                print(f"Course '{old_course_name}' has been updated to '{new_course_name}'.")
+                return
+        print(f"Course '{old_course_name}' not found.")
+
+    def list_courses(self):
+        """Display list of all courses."""
+        if not self.courses:
+            print("No courses found.")
+            return
+        print("List of courses:")
+        for course in self.courses:
+            print(f"Name: {course[0]}, Teacher: {course[1]}")
+
 class Course:
     def __init__(self, code, name, credits, area_of_study):
         self.code = code
