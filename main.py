@@ -156,26 +156,13 @@ def display_menu():
     print("2. Add Course")
     print("3. Add Professor")
     print("4. Enroll Student in Course")
-    print("5. Add Grade")
-    print("6. Search Students")
-    print("7. Sort Students")
-    print("8. Analyze Performance")
-    print("9. Export to CSV")
-    print("10. Exit")
-    print("==============================")
-
-def display_menu():
-    print("\n=== Student Management System ===")
-    print("1. Add Student")
-    print("2. Change Student Information")
-    print("3. Delete Student")
-    print("4. Search Students")
-    print("5. Display All Students")
-    print("6. Add Course")
-    print("7. Enroll Student in Course")
-    print("8. List Student's Courses")
-    print("9. View Course Students")
-    print("10. Exit")
+    print("5. Show All Students")
+    print("6. Add Grade")
+    print("7. Search Students")
+    print("8. Sort Students")
+    print("9. Analyze Performance")
+    print("10. Export to CSV")
+    print("11. Exit")
     print("==============================")
 
 def main():
@@ -183,7 +170,7 @@ def main():
     
     while True:
         display_menu()
-        choice = input("Enter your choice (1-10): ")
+        choice = input("Enter your choice (1-11): ")
 
         try:
             if choice == "1":
@@ -196,8 +183,8 @@ def main():
                 is_valid, message = validate_student_data(name, surname, dob, area, citizenship)
                 if is_valid:
                     student = Student(name, surname, dob, citizenship, area, "")
-                    system.students.append(student)
-                    print(f"Student {student.full_name} added successfully!")
+                    if system.add_student(student):
+                        print(f"Student {student.full_name} added successfully!")
                 else:
                     print(f"Error: {message}")
 
@@ -208,8 +195,8 @@ def main():
                 area = input("Enter area of study: ")
                 
                 course = Course(code, name, credits, area)
-                system.courses.append(course)
-                print(f"Course {name} ({code}) added successfully!")
+                if system.add_course(course):
+                    print(f"Course {name} ({code}) added successfully!")
 
             elif choice == "3":
                 name = input("Enter professor's first name: ")
@@ -220,38 +207,48 @@ def main():
                 specialization = input("Enter specialization: ")
                 
                 professor = Professor(name, surname, dob, citizenship, department, specialization)
-                system.professors.append(professor)
-                print(f"Professor {professor.full_name} added successfully!")
+                if system.add_professor(professor):
+                    print(f"Professor {professor.full_name} added successfully!")
 
             elif choice == "4":
                 student_name = input("Enter student's full name: ")
                 course_code = input("Enter course code: ")
                 
-                student = next((s for s in system.students if s.full_name == student_name), None)
-                course = next((c for c in system.courses if c.code == course_code), None)
-                
-                if student and course:
-                    course.enrolled_students.add(student)
+                if system.enroll_student(student_name, course_code):
                     print(f"Student {student_name} enrolled in course {course_code}")
                 else:
                     print("Student or course not found!")
 
             elif choice == "5":
+                print("\nList of All Students:")
+                if system.students:
+                    for student in system.students:
+                        print(f"- {student.full_name} (GPA: {student.gpa:.2f})")
+                else:
+                    print("No students in the system.")
+
+            elif choice == "6":
+                print("\nAvailable Students:")
+                for student in system.students:
+                    print(f"- {student.full_name}")
+                print("\nAvailable Courses:")
+                for course in system.courses:
+                    print(f"- {course.name} ({course.code})")
+                print("\n")
+                
                 student_name = input("Enter student's full name: ")
                 course_code = input("Enter course code: ")
                 grade_value = float(input("Enter grade value: "))
                 grade_weight = float(input("Enter grade weight: "))
                 grade_date = input("Enter grade date (DD-MM-YYYY): ")
                 
-                student = next((s for s in system.students if s.full_name == student_name), None)
-                if student:
-                    grade = Grade(grade_value, grade_weight, grade_date)
-                    student.add_grade(course_code, grade)
+                grade = Grade(grade_value, grade_weight, grade_date)
+                if system.add_grade(student_name, course_code, grade):
                     print("Grade added successfully!")
                 else:
                     print("Student not found!")
 
-            elif choice == "6":
+            elif choice == "7":
                 query = input("Enter search query: ")
                 search_by = input("Search by (name/area): ")
                 results = search_students(system.students, query, search_by)
@@ -263,7 +260,7 @@ def main():
                 else:
                     print("No results found!")
 
-            elif choice == "7":
+            elif choice == "8":
                 sort_by = input("Sort by (gpa/name): ")
                 if sort_by == "gpa":
                     sorted_students = sort_students_by_gpa(system.students)
@@ -274,21 +271,21 @@ def main():
                 for student in sorted_students:
                     print(f"- {student.full_name} (GPA: {student.gpa:.2f})")
 
-            elif choice == "8":
-                performance = analyze_performance(system.students)
+            elif choice == "9":
+                performance = system.analyze_performance()
                 print("\nPerformance Analysis:")
                 print(f"Sort Time: {performance['sort_time']:.4f} seconds")
                 print(f"Search Time: {performance['search_time']:.4f} seconds")
                 print(f"Total Time: {performance['total_time']:.4f} seconds")
                 print(f"Average GPA: {performance['average_gpa']:.2f}")
 
-            elif choice == "9":
-                if export_to_csv(system.students):
+            elif choice == "10":
+                if system.export_to_csv():
                     print("Data exported successfully!")
                 else:
                     print("Error exporting data!")
 
-            elif choice == "10":
+            elif choice == "11":
                 system.save_data()
                 print("Thank you for using the Student Management System!")
                 break

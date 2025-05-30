@@ -1,4 +1,7 @@
 import os
+import time
+import pandas as pd
+from information import Student, Course, Professor, Grade
 
 class CourseManager:
     def __init__(self, filename="courses.txt"):
@@ -175,3 +178,100 @@ def get_course_students(course_code):
     except FileNotFoundError:
         print("Required database files not found.")
         return []
+
+def analyze_course_performance(course: Course) -> dict:
+    """Analyze course performance metrics"""
+    if not course.enrolled_students:
+        return {
+            'enrollment_count': 0,
+            'average_gpa': 0.0,
+            'completion_rate': 0.0
+        }
+
+    # Calculate metrics
+    enrollment_count = len(course.enrolled_students)
+    gpas = [student.gpa for student in course.enrolled_students]
+    average_gpa = sum(gpas) / len(gpas) if gpas else 0.0
+
+    # Calculate completion rate
+    students_with_grades = sum(1 for student in course.enrolled_students 
+                             if course.code in student.courses)
+    completion_rate = students_with_grades / enrollment_count if enrollment_count > 0 else 0.0
+
+    return {
+        'enrollment_count': enrollment_count,
+        'average_gpa': average_gpa,
+        'completion_rate': completion_rate
+    }
+
+def generate_performance_report(courses: list[Course], output_file: str = "performance_report.csv") -> bool:
+    """Generate a comprehensive performance report"""
+    try:
+        data = []
+        for course in courses:
+            performance = analyze_course_performance(course)
+            data.append({
+                'Course Code': course.code,
+                'Course Name': course.name,
+                'Enrollment Count': performance['enrollment_count'],
+                'Average GPA': performance['average_gpa'],
+                'Completion Rate': performance['completion_rate'],
+                'Professor': course.professor.full_name if course.professor else 'Unassigned'
+            })
+        
+        df = pd.DataFrame(data)
+        df.to_csv(output_file, index=False)
+        print(f"Performance report generated successfully: {output_file}")
+        return True
+    except Exception as e:
+        print(f"Error generating performance report: {str(e)}")
+        return False
+
+def visualize_performance(courses: list[Course]) -> None:
+    """Visualize course performance metrics"""
+    try:
+        import matplotlib.pyplot as plt
+        
+        # Prepare data
+        course_codes = [course.code for course in courses]
+        enrollment_counts = [len(course.enrolled_students) for course in courses]
+        avg_gpas = [sum(student.gpa for student in course.enrolled_students) / len(course.enrolled_students)
+                   if course.enrolled_students else 0 for course in courses]
+        
+        # Create subplots
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+        
+        # Plot enrollment counts
+        ax1.bar(course_codes, enrollment_counts)
+        ax1.set_title('Course Enrollment')
+        ax1.set_xlabel('Course Code')
+        ax1.set_ylabel('Number of Students')
+        plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45)
+        
+        # Plot average GPAs
+        ax2.bar(course_codes, avg_gpas)
+        ax2.set_title('Average GPA by Course')
+        ax2.set_xlabel('Course Code')
+        ax2.set_ylabel('Average GPA')
+        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45)
+        
+        plt.tight_layout()
+        plt.savefig('course_performance.png')
+        print("Performance visualization saved as 'course_performance.png'")
+        
+    except ImportError:
+        print("Matplotlib is required for visualization. Please install it using: pip install matplotlib")
+    except Exception as e:
+        print(f"Error creating visualization: {str(e)}")
+
+def main():
+    # Example usage
+    print("Course Performance Analysis Module")
+    print("This module provides tools for analyzing and visualizing course performance.")
+    print("Import and use the following functions:")
+    print("- analyze_course_performance(course)")
+    print("- generate_performance_report(courses, output_file)")
+    print("- visualize_performance(courses)")
+
+if __name__ == "__main__":
+    main()
