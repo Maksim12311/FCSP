@@ -149,3 +149,15 @@ def sort_students_by_name(students: List[Student]) -> List[Student]:
     if not students:
         return []
     return sorted(students, key=lambda x: x.full_name)
+
+def count_students_by_area(students: List[Student], area: str, index: int = 0) -> int:
+    """Recursively count students in a specific area of study"""
+    # Base case: empty list or reached end
+    if not students or index >= len(students):
+        return 0
+        
+    # Count current student if in area
+    count = 1 if students[index].area_of_study == area else 0
+    
+    # Recursive call for remaining students
+    return count + count_students_by_area(students, area, index + 1)
