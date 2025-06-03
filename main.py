@@ -17,30 +17,27 @@ class StudentManagementSystem:
             with open("students.txt", "r") as f:
                 for line in f:
                     name, surname, dob, area, citizenship = line.strip().split(",")
-                    student = Student(name, surname, dob, citizenship, area, "")
-                    self.students.append(student)
+                    self.students.append(Student(name, surname, dob, citizenship, area, ""))
 
             # Load courses
             with open("courses.txt", "r") as f:
                 for line in f:
                     code, name, credits, area = line.strip().split(",")
-                    course = Course(code, name, int(credits), area)
-                    self.courses.append(course)
+                    self.courses.append(Course(code, name, int(credits), area))
         except FileNotFoundError:
-            print("No existing data found. Starting with empty system.")
+            print("System: No existing data found. Starting fresh.")
 
     def save_data(self) -> None:
         """Save data to CSV files"""
         # Save students
         with open("students.txt", "w") as f:
-            for student in self.students:
-                f.write(f"{student.first_name},{student.last_name},{student.dob},"
-                       f"{student.area_of_study},{student.citizenship}\n")
+            for s in self.students:
+                f.write(f"{s.first_name},{s.last_name},{s.dob},{s.area_of_study},{s.citizenship}\n")
 
         # Save courses
         with open("courses.txt", "w") as f:
-            for course in self.courses:
-                f.write(f"{course.code},{course.name},{course.credits},{course.area}\n")
+            for c in self.courses:
+                f.write(f"{c.code},{c.name},{c.credits},{c.area}\n")
 
     def add_student(self, student: Student) -> bool:
         """Add a new student to the system"""
@@ -48,7 +45,7 @@ class StudentManagementSystem:
             self.students.append(student)
             return True
         except Exception as e:
-            print(f"Error adding student: {str(e)}")
+            print(f"Error adding student: {e}")
             return False
 
     def add_course(self, course: Course) -> bool:
@@ -57,7 +54,7 @@ class StudentManagementSystem:
             self.courses.append(course)
             return True
         except Exception as e:
-            print(f"Error adding course: {str(e)}")
+            print(f"Error adding course: {e}")
             return False
 
     def add_professor(self, professor: Professor) -> bool:
@@ -66,7 +63,7 @@ class StudentManagementSystem:
             self.professors.append(professor)
             return True
         except Exception as e:
-            print(f"Error adding professor: {str(e)}")
+            print(f"Error adding professor: {e}")
             return False
 
     def enroll_student(self, student_name: str, course_code: str) -> bool:
@@ -74,18 +71,28 @@ class StudentManagementSystem:
         student = next((s for s in self.students if s.full_name == student_name), None)
         course = next((c for c in self.courses if c.code == course_code), None)
         
-        if student and course:
-            course.enrolled_students.add(student)
-            return True
-        return False
+        if not student:
+            print(f"Error: Student '{student_name}' not found")
+            return False
+        if not course:
+            print(f"Error: Course '{course_code}' not found")
+            return False
+            
+        course.enrolled_students.add(student)
+        return True
 
     def add_grade(self, student_name: str, course_code: str, grade: Grade) -> bool:
         """Add a grade for a student in a course"""
         student = next((s for s in self.students if s.full_name == student_name), None)
-        if student:
-            student.add_grade(course_code, grade)
-            return True
-        return False
+        if not student:
+            print(f"Error: Student '{student_name}' not found")
+            return False
+        if not course_code in student.courses:
+            print(f"Error: Student not enrolled in course '{course_code}'")
+            return False
+            
+        student.add_grade(course_code, grade)
+        return True
 
     def get_student(self, name: str) -> Optional[Student]:
         """Get a student by name"""
@@ -99,264 +106,248 @@ class StudentManagementSystem:
         """Get a professor by name"""
         return next((p for p in self.professors if p.full_name == name), None)
 
-    def export_to_csv(self, filename: str = "student_export.csv") -> bool:
+    def export_to_csv(self, filename: str = "export.csv") -> bool:
         """Export student data to CSV"""
         try:
-            data = []
-            for student in self.students:
-                data.append({
-                    'First Name': student.first_name,
-                    'Last Name': student.last_name,
-                    'Date of Birth': student.dob,
-                    'Area of Study': student.area_of_study,
-                    'Citizenship': student.citizenship,
-                    'GPA': student.gpa,
-                    'Is Active': student.is_active
-                })
+            data = [{
+                'First': s.first_name,
+                'Last': s.last_name,
+                'DOB': s.dob,
+                'Area': s.area_of_study,
+                'Citizen': s.citizenship,
+                'GPA': s.gpa,
+                'Active': s.is_active
+            } for s in self.students]
             
-            df = pd.DataFrame(data)
-            df.to_csv(filename, index=False)
-            print(f"Successfully exported {len(self.students)} students to {filename}")
+            pd.DataFrame(data).to_csv(filename, index=False)
             return True
-            
         except Exception as e:
-            print(f"Error during export: {str(e)}")
+            print(f"Error: {e}")
             return False
 
     def analyze_performance(self) -> Dict[str, float]:
         """Analyze system performance"""
-        start_time = time.time()
+        start = time.time()
         
         # Measure sorting performance
-        sort_start = time.time()
-        sorted_students = sorted(self.students, key=lambda x: x.gpa)
-        sort_time = time.time() - sort_start
+        sort_time = time.time() - start
+        sorted(self.students, key=lambda x: x.gpa)
 
         # Measure search performance
-        search_start = time.time()
-        _ = [s for s in self.students if s.gpa >= 3.0]
-        search_time = time.time() - search_start
+        search_time = time.time() - start
+        [s for s in self.students if s.gpa >= 3.0]
 
         # Calculate average GPA
-        gpas = [student.gpa for student in self.students]
+        gpas = [s.gpa for s in self.students]
         avg_gpa = sum(gpas) / len(gpas) if gpas else 0.0
 
-        total_time = time.time() - start_time
-
         return {
-            'sort_time': sort_time,
-            'search_time': search_time,
-            'total_time': total_time,
-            'average_gpa': avg_gpa
+            'sort': sort_time,
+            'search': search_time,
+            'total': time.time() - start,
+            'gpa': avg_gpa
         }
 
-    def generate_truth_table(self, operation: str) -> None:
+    def generate_truth_table(self, op: str) -> None:
         """Generate and display a truth table for logical operations"""
-        print(f"\nTruth Table for {operation.upper()}")
-        print("-" * 40)
+        print(f"\nTruth Table: {op.upper()}")
+        print("-" * 30)
         
-        if operation.lower() == "and":
+        if op == "and":
             print("p\tq\tp AND q")
-            print("-" * 40)
             for p in [True, False]:
                 for q in [True, False]:
                     print(f"{p}\t{q}\t{p and q}")
                     
-        elif operation.lower() == "or":
+        elif op == "or":
             print("p\tq\tp OR q")
-            print("-" * 40)
             for p in [True, False]:
                 for q in [True, False]:
                     print(f"{p}\t{q}\t{p or q}")
                     
-        elif operation.lower() == "not":
+        elif op == "not":
             print("p\tNOT p")
-            print("-" * 20)
             for p in [True, False]:
                 print(f"{p}\t{not p}")
                 
-        elif operation.lower() == "nand":
+        elif op == "nand":
             print("p\tq\tp NAND q")
-            print("-" * 40)
             for p in [True, False]:
                 for q in [True, False]:
                     print(f"{p}\t{q}\t{not (p and q)}")
                     
-        elif operation.lower() == "nor":
+        elif op == "nor":
             print("p\tq\tp NOR q")
-            print("-" * 40)
             for p in [True, False]:
                 for q in [True, False]:
                     print(f"{p}\t{q}\t{not (p or q)}")
                     
-        elif operation.lower() == "xor":
+        elif op == "xor":
             print("p\tq\tp XOR q")
-            print("-" * 40)
             for p in [True, False]:
                 for q in [True, False]:
                     print(f"{p}\t{q}\t{p != q}")
         else:
-            print("Invalid operation! Available operations: AND, OR, NOT, NAND, NOR, XOR")
+            print("Error: Invalid operation")
+            print("Available operations: AND, OR, NOT, NAND, NOR, XOR")
 
 def display_menu():
-    print("\n=== Student Management System ===")
+    print("\n=== Menu ===")
     print("1. Add Student")
     print("2. Add Course")
     print("3. Add Professor")
-    print("4. Enroll Student in Course")
-    print("5. Show All Students")
+    print("4. Enroll")
+    print("5. List Students")
     print("6. Add Grade")
-    print("7. Search Students")
-    print("8. Sort Students")
-    print("9. Analyze Performance")
-    print("10. Export to CSV")
-    print("11. Generate Truth Table")
+    print("7. Search")
+    print("8. Sort")
+    print("9. Performance")
+    print("10. Export")
+    print("11. Truth Table")
     print("12. Exit")
-    print("==============================")
 
 def main():
     system = StudentManagementSystem()
     
     while True:
         display_menu()
-        choice = input("Enter your choice (1-12): ")
+        choice = input("Choice (1-12): ")
 
         try:
             if choice == "1":
-                name = input("Enter student's first name: ")
-                surname = input("Enter student's last name: ")
-                dob = input("Enter date of birth (DD-MM-YYYY): ")
-                area = input("Enter area of study: ")
-                citizenship = input("Enter citizenship: ")
+                name = input("First name: ")
+                surname = input("Last name: ")
+                dob = input("DOB (DD-MM-YYYY): ")
+                area = input("Area: ")
+                citizenship = input("Citizenship: ")
                 
-                is_valid, message = validate_student_data(name, surname, dob, area, citizenship)
-                if is_valid:
+                if validate_student_data(name, surname, dob, area, citizenship)[0]:
                     student = Student(name, surname, dob, citizenship, area, "")
                     if system.add_student(student):
-                        print(f"Student {student.full_name} added successfully!")
+                        print(f"Success: Added student {student.full_name}")
                 else:
-                    print(f"Error: {message}")
+                    print("Error: Invalid student data")
 
             elif choice == "2":
-                code = input("Enter course code: ")
-                name = input("Enter course name: ")
-                credits = int(input("Enter number of credits: "))
-                area = input("Enter area of study: ")
-                
+                code = input("Code: ")
+                name = input("Name: ")
+                try:
+                    credits = int(input("Credits: "))
+                    if credits <= 0:
+                        raise ValueError
+                except ValueError:
+                    print("Error: Credits must be a positive number")
+                    continue
+                    
+                area = input("Area: ")
                 course = Course(code, name, credits, area)
                 if system.add_course(course):
-                    print(f"Course {name} ({code}) added successfully!")
+                    print(f"Success: Added course {name} ({code})")
 
             elif choice == "3":
-                name = input("Enter professor's first name: ")
-                surname = input("Enter professor's last name: ")
-                dob = input("Enter date of birth (DD-MM-YYYY): ")
-                citizenship = input("Enter citizenship: ")
-                department = input("Enter department: ")
-                specialization = input("Enter specialization: ")
+                name = input("First name: ")
+                surname = input("Last name: ")
+                dob = input("DOB: ")
+                citizenship = input("Citizenship: ")
+                dept = input("Department: ")
+                spec = input("Specialization: ")
                 
-                professor = Professor(name, surname, dob, citizenship, department, specialization)
-                if system.add_professor(professor):
-                    print(f"Professor {professor.full_name} added successfully!")
+                prof = Professor(name, surname, dob, citizenship, dept, spec)
+                if system.add_professor(prof):
+                    print(f"Success: Added professor {prof.full_name}")
 
             elif choice == "4":
-                student_name = input("Enter student's full name: ")
-                course_code = input("Enter course code: ")
-                
-                if system.enroll_student(student_name, course_code):
-                    print(f"Student {student_name} enrolled in course {course_code}")
-                else:
-                    print("Student or course not found!")
+                student = input("Student name: ")
+                course = input("Course code: ")
+                if system.enroll_student(student, course):
+                    print(f"Success: Enrolled {student} in {course}")
 
             elif choice == "5":
-                print("\nList of All Students:")
                 if system.students:
-                    for student in system.students:
-                        print(f"- {student.full_name} (GPA: {student.gpa:.2f})")
+                    for s in system.students:
+                        print(f"{s.full_name} (GPA: {s.gpa:.2f})")
                 else:
-                    print("No students in the system.")
+                    print("Info: No students in system")
 
             elif choice == "6":
-                print("\nAvailable Students:")
-                for student in system.students:
-                    print(f"- {student.full_name}")
-                print("\nAvailable Courses:")
-                for course in system.courses:
-                    print(f"- {course.name} ({course.code})")
-                print("\n")
-                
-                student_name = input("Enter student's full name: ")
-                course_code = input("Enter course code: ")
-                grade_value = float(input("Enter grade value: "))
-                grade_weight = float(input("Enter grade weight: "))
-                grade_date = input("Enter grade date (DD-MM-YYYY): ")
-                
-                grade = Grade(grade_value, grade_weight, grade_date)
-                if system.add_grade(student_name, course_code, grade):
-                    print("Grade added successfully!")
-                else:
-                    print("Student not found!")
+                student = input("Student: ")
+                course = input("Course: ")
+                try:
+                    grade = float(input("Grade: "))
+                    if not (0 <= grade <= 100):
+                        print("Error: Grade must be between 0 and 100")
+                        continue
+                    weight = float(input("Weight: "))
+                    if not (0 < weight <= 1):
+                        print("Error: Weight must be between 0 and 1")
+                        continue
+                except ValueError:
+                    print("Error: Grade and weight must be numbers")
+                    continue
+                    
+                date = input("Date: ")
+                if system.add_grade(student, course, Grade(grade, weight, date)):
+                    print("Success: Grade added")
 
             elif choice == "7":
-                query = input("Enter search query: ")
-                search_by = input("Search by (name/area): ")
-                results = search_students(system.students, query, search_by)
-                
+                query = input("Search: ")
+                by = input("By (name/area): ")
+                if by not in ["name", "area"]:
+                    print("Error: Search by must be 'name' or 'area'")
+                    continue
+                    
+                results = search_students(system.students, query, by)
                 if results:
-                    print("\nSearch Results:")
-                    for student in results:
-                        print(f"- {student.full_name} (GPA: {student.gpa:.2f})")
+                    for s in results:
+                        print(f"{s.full_name} (GPA: {s.gpa:.2f})")
                 else:
-                    print("No results found!")
+                    print("Info: No matching students found")
 
             elif choice == "8":
-                sort_by = input("Sort by (gpa/name): ")
-                if sort_by == "gpa":
-                    sorted_students = sort_students_by_gpa(system.students)
-                else:
-                    sorted_students = sort_students_by_name(system.students)
-                
-                print("\nSorted Students:")
-                for student in sorted_students:
-                    print(f"- {student.full_name} (GPA: {student.gpa:.2f})")
+                by = input("Sort by (gpa/name): ")
+                if by not in ["gpa", "name"]:
+                    print("Error: Sort by must be 'gpa' or 'name'")
+                    continue
+                    
+                students = sort_students_by_gpa(system.students) if by == "gpa" else sort_students_by_name(system.students)
+                for s in students:
+                    print(f"{s.full_name} (GPA: {s.gpa:.2f})")
 
             elif choice == "9":
-                performance = system.analyze_performance()
-                print("\nPerformance Analysis:")
-                print(f"Sort Time: {performance['sort_time']:.4f} seconds")
-                print(f"Search Time: {performance['search_time']:.4f} seconds")
-                print(f"Total Time: {performance['total_time']:.4f} seconds")
-                print(f"Average GPA: {performance['average_gpa']:.2f}")
+                perf = system.analyze_performance()
+                print(f"Sort: {perf['sort']:.4f}s")
+                print(f"Search: {perf['search']:.4f}s")
+                print(f"Total: {perf['total']:.4f}s")
+                print(f"GPA: {perf['gpa']:.2f}")
 
             elif choice == "10":
                 if system.export_to_csv():
-                    print("Data exported successfully!")
+                    print("Success: Data exported")
                 else:
-                    print("Error exporting data!")
+                    print("Error: Export failed")
 
             elif choice == "11":
                 print("\nAvailable operations:")
-                print("1. AND")
-                print("2. OR")
-                print("3. NOT")
-                print("4. NAND")
-                print("5. NOR")
-                print("6. XOR")
-                operation = input("Enter operation name: ").lower()
-                system.generate_truth_table(operation)
+                print("AND, OR, NOT, NAND, NOR, XOR")
+                op = input("Operation: ").lower()
+                if not op:
+                    print("Error: Operation name required")
+                    continue
+                system.generate_truth_table(op)
 
             elif choice == "12":
                 system.save_data()
-                print("Thank you for using the Student Management System!")
+                print("System: Goodbye!")
                 break
 
             else:
-                print("Invalid choice! Please try again.")
+                print("Error: Invalid menu choice")
 
         except ValueError as e:
-            print(f"Error: {str(e)}")
+            print(f"Error: Invalid input - {e}")
         except Exception as e:
-            print(f"An unexpected error occurred: {str(e)}")
+            print(f"System Error: {e}")
+            print("Please try again or contact support")
 
 if __name__ == "__main__":
     main()

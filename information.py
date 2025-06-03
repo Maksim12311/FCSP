@@ -13,11 +13,11 @@ class Grade:
     date: str
 
 class Person(ABC):
-    def __init__(self, first_name: str, last_name: str, dob: str, citizenship: str):
-        self.first_name = first_name
-        self.last_name = last_name
+    def __init__(self, first: str, last: str, dob: str, citizen: str):
+        self.first_name = first
+        self.last_name = last
         self.dob = dob
-        self.citizenship = citizenship
+        self.citizenship = citizen
         self._id: Optional[int] = None
 
     @property
@@ -29,11 +29,11 @@ class Person(ABC):
         pass
 
 class Student(Person):
-    def __init__(self, first_name: str, last_name: str, dob: str, citizenship: str, 
-                 area_of_study: str, enrollment_date: str):
-        super().__init__(first_name, last_name, dob, citizenship)
-        self.area_of_study = area_of_study
-        self.enrollment_date = enrollment_date
+    def __init__(self, first: str, last: str, dob: str, citizen: str, 
+                 area: str, enroll: str):
+        super().__init__(first, last, dob, citizen)
+        self.area_of_study = area
+        self.enrollment_date = enroll
         self.courses: Dict[str, List[Grade]] = {}
         self.gpa: float = 0.0
         self.is_active: bool = True
@@ -41,10 +41,10 @@ class Student(Person):
     def get_role(self) -> str:
         return "Student"
 
-    def add_grade(self, course_code: str, grade: Grade) -> None:
-        if course_code not in self.courses:
-            self.courses[course_code] = []
-        self.courses[course_code].append(grade)
+    def add_grade(self, code: str, grade: Grade) -> None:
+        if code not in self.courses:
+            self.courses[code] = []
+        self.courses[code].append(grade)
         self._update_gpa()
 
     def _update_gpa(self) -> None:
@@ -52,22 +52,21 @@ class Student(Person):
             self.gpa = 0.0
             return
 
-        total_weighted_grade = 0
-        total_weight = 0
-
+        total = 0
+        weight = 0
         for grades in self.courses.values():
-            for grade in grades:
-                total_weighted_grade += grade.value * grade.weight
-                total_weight += grade.weight
+            for g in grades:
+                total += g.value * g.weight
+                weight += g.weight
 
-        self.gpa = total_weighted_grade / total_weight if total_weight > 0 else 0.0
+        self.gpa = total / weight if weight > 0 else 0.0
 
 class Professor(Person):
-    def __init__(self, first_name: str, last_name: str, dob: str, citizenship: str,
-                 department: str, specialization: str):
-        super().__init__(first_name, last_name, dob, citizenship)
-        self.department = department
-        self.specialization = specialization
+    def __init__(self, first: str, last: str, dob: str, citizen: str,
+                 dept: str, spec: str):
+        super().__init__(first, last, dob, citizen)
+        self.department = dept
+        self.specialization = spec
         self.courses_taught: Set[str] = set()
         self.is_tenured: bool = False
 
@@ -84,113 +83,89 @@ class Course:
         self.professor: Optional[Professor] = None
         self.enrolled_students: Set[Student] = set()
 
-    def add_prerequisite(self, course_code: str) -> None:
-        self.prerequisites.add(course_code)
+    def add_prerequisite(self, code: str) -> None:
+        self.prerequisites.add(code)
 
-    def assign_professor(self, professor: Professor) -> None:
-        self.professor = professor
-        professor.courses_taught.add(self.code)
+    def assign_professor(self, prof: Professor) -> None:
+        self.professor = prof
+        prof.courses_taught.add(self.code)
 
-def validate_student_data(name: str, surname: str, date_of_birth: str, 
-                         area_of_study: str, citizenship: str) -> tuple[bool, str]:
-    """Validate student data before adding to the system"""
-    if not all([name, surname, date_of_birth, area_of_study, citizenship]):
+def validate_student_data(name: str, surname: str, dob: str, area: str, citizen: str) -> tuple[bool, str]:
+    if not all([name, surname, dob, area, citizen]):
         return False, "All fields are required"
-    
+        
     if not (name.isalpha() and surname.isalpha()):
-        return False, "Name and surname should contain only letters"
-    
+        return False, "Name and surname must contain only letters"
+        
     try:
-        day, month, year = date_of_birth.split("-")
+        day, month, year = dob.split("-")
         if not (len(day) == 2 and len(month) == 2 and len(year) == 4):
-            raise ValueError
+            return False, "Date must be in DD-MM-YYYY format"
         if not (day.isdigit() and month.isdigit() and year.isdigit()):
-            raise ValueError
+            return False, "Date must contain only numbers"
+        if not (1 <= int(day) <= 31 and 1 <= int(month) <= 12):
+            return False, "Invalid date values"
     except ValueError:
-        return False, "Date should be in DD-MM-YYYY format"
-    
-    return True, "Data is valid"
+        return False, "Invalid date format"
+        
+    return True, ""
+
+def search_students(students: List[Student], query: str, by: str) -> List[Student]:
+    if not query:
+        return []
+        
+    if by not in ["name", "area"]:
+        raise ValueError("Search type must be 'name' or 'area'")
+        
+    if by == "name":
+        return [s for s in students if query.lower() in s.full_name.lower()]
+    else:
+        return [s for s in students if query.lower() in s.area_of_study.lower()]
 
 def sort_students_by_gpa(students: List[Student]) -> List[Student]:
-    """Sort students by GPA using quicksort (recursive)"""
-    if len(students) <= 1:
-        return students
-    pivot = students[len(students) // 2]
-    left = [s for s in students if s.gpa < pivot.gpa]
-    middle = [s for s in students if s.gpa == pivot.gpa]
-    right = [s for s in students if s.gpa > pivot.gpa]
-    return sort_students_by_gpa(left) + middle + sort_students_by_gpa(right)
+    if not students:
+        return []
+    return sorted(students, key=lambda x: x.gpa, reverse=True)
 
 def sort_students_by_name(students: List[Student]) -> List[Student]:
-    """Sort students by name using bubble sort (iterative)"""
-    n = len(students)
-    for i in range(n):
-        for j in range(0, n - i - 1):
-            if students[j].full_name > students[j + 1].full_name:
-                students[j], students[j + 1] = students[j + 1], students[j]
-    return students
-
-def search_students(students: List[Student], query: str, search_by: str = 'name') -> List[Student]:
-    """Search students using binary search (iterative)"""
-    sorted_students = sort_students_by_name(students)
-    left, right = 0, len(sorted_students) - 1
-    results = []
-
-    while left <= right:
-        mid = (left + right) // 2
-        current = sorted_students[mid]
-
-        if search_by == 'name':
-            value = current.full_name.lower()
-        elif search_by == 'area':
-            value = current.area_of_study.lower()
-        else:
-            raise ValueError("Invalid search criteria")
-
-        if query.lower() in value:
-            results.append(current)
-            # Check adjacent elements for more matches
-            i = mid - 1
-            while i >= 0 and query.lower() in sorted_students[i].full_name.lower():
-                results.append(sorted_students[i])
-                i -= 1
-            i = mid + 1
-            while i < len(sorted_students) and query.lower() in sorted_students[i].full_name.lower():
-                results.append(sorted_students[i])
-                i += 1
-            break
-        elif value < query.lower():
-            left = mid + 1
-        else:
-            right = mid - 1
-
-    return results
+    if not students:
+        return []
+    return sorted(students, key=lambda x: x.full_name)
 
 def evaluate_student_performance(student: Student) -> Dict[str, float]:
-    """Evaluate student performance using truth table logic"""
+    if not student:
+        raise ValueError("Student object is required")
+        
     performance = {
         'academic_standing': 0.0,
         'course_load': 0.0,
         'attendance': 0.0
     }
 
-    # Truth table evaluation for academic standing
+    # Academic standing evaluation
     gpa_condition = student.gpa >= 3.0
     active_condition = student.is_active
     performance['academic_standing'] = 1.0 if (gpa_condition and active_condition) else 0.0
 
-    # Truth table evaluation for course load
+    # Course load evaluation
     course_count = len(student.courses)
     performance['course_load'] = 1.0 if (course_count >= 3 and course_count <= 6) else 0.0
 
-    # Truth table evaluation for attendance
+    # Attendance evaluation
     has_grades = any(len(grades) > 0 for grades in student.courses.values())
     performance['attendance'] = 1.0 if has_grades else 0.0
 
     return performance
 
 def analyze_performance(students: List[Student]) -> Dict[str, float]:
-    """Analyze system performance"""
+    if not students:
+        return {
+            'sort_time': 0.0,
+            'search_time': 0.0,
+            'total_time': 0.0,
+            'average_gpa': 0.0
+        }
+        
     start_time = time.time()
     
     # Measure sorting performance
@@ -204,40 +179,38 @@ def analyze_performance(students: List[Student]) -> Dict[str, float]:
     search_time = time.time() - search_start
 
     # Calculate average GPA
-    gpas = [student.gpa for student in students]
+    gpas = [s.gpa for s in students]
     avg_gpa = statistics.mean(gpas) if gpas else 0.0
-
-    total_time = time.time() - start_time
 
     return {
         'sort_time': sort_time,
         'search_time': search_time,
-        'total_time': total_time,
+        'total_time': time.time() - start_time,
         'average_gpa': avg_gpa
     }
 
-def export_to_csv(students: List[Student], filename: str = "student_export.csv") -> bool:
-    """Export student data to CSV using pandas"""
-    try:
-        data = []
-        for student in students:
-            data.append({
-                'First Name': student.first_name,
-                'Last Name': student.last_name,
-                'Date of Birth': student.dob,
-                'Area of Study': student.area_of_study,
-                'Citizenship': student.citizenship,
-                'GPA': student.gpa,
-                'Is Active': student.is_active
-            })
+def export_to_csv(students: List[Student], filename: str = "export.csv") -> bool:
+    if not students:
+        print("Warning: No students to export")
+        return False
         
-        df = pd.DataFrame(data)
-        df.to_csv(filename, index=False)
-        print(f"Successfully exported {len(students)} students to {filename}")
+    try:
+        data = [{
+            'First': s.first_name,
+            'Last': s.last_name,
+            'DOB': s.dob,
+            'Area': s.area_of_study,
+            'Citizen': s.citizenship,
+            'GPA': s.gpa,
+            'Active': s.is_active
+        } for s in students]
+        
+        pd.DataFrame(data).to_csv(filename, index=False)
+        print(f"Success: Exported {len(students)} students")
         return True
         
     except Exception as e:
-        print(f"Error during export: {str(e)}")
+        print(f"Error: Export failed - {e}")
         return False
 
 def add_student(name, surname, date_of_birth, area_of_study, citizenship):
@@ -251,8 +224,6 @@ def add_student(name, surname, date_of_birth, area_of_study, citizenship):
         f.write(f"{name},{surname},{date_of_birth},{area_of_study},{citizenship}\n")
     print(f"Student {name} {surname} has been added successfully.")
     return True
-
-
 
 def change_information(name, new_data):
     """Update existing student information"""
@@ -277,8 +248,6 @@ def change_information(name, new_data):
     except FileNotFoundError:
         print("Student database not found.")
 
-
-
 def delete_student(name):
     """Delete a student from the system"""
     try:
@@ -300,8 +269,6 @@ def delete_student(name):
             
     except FileNotFoundError:
         print("Student database not found.")
-
-
 
 def display_all_students():
     """Display all students in the system"""
@@ -325,8 +292,6 @@ def display_all_students():
     except FileNotFoundError:
         print("Student database not found.")
 
-
-
 def count_students_by_area():
     """Count how many students are in each area of study"""
     try:
@@ -344,8 +309,6 @@ def count_students_by_area():
             print(f"{area}: {count} students")
     except FileNotFoundError:
         print("Student database not found.")
-
-
 
 def export_to_csv(filename="student_export.csv"):
     """Export all student data to a CSV file"""
