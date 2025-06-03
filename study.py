@@ -228,50 +228,27 @@ def generate_performance_report(courses: list[Course], output_file: str = "perfo
         return False
 
 def visualize_performance(courses: list[Course]) -> None:
-    """Visualize course performance metrics"""
-    try:
-        import matplotlib.pyplot as plt
+    """Show basic course performance data"""
+    if not courses:
+        print("No courses to analyze")
+        return
         
-        # Prepare data
-        course_codes = [course.code for course in courses]
-        enrollment_counts = [len(course.enrolled_students) for course in courses]
-        avg_gpas = [sum(student.gpa for student in course.enrolled_students) / len(course.enrolled_students)
-                   if course.enrolled_students else 0 for course in courses]
+    print("Course Performance Summary")
+    print("-" * 40)
+    
+    for course in courses:
+        # Get basic metrics
+        students = len(course.enrolled_students)
+        gpas = [s.gpa for s in course.enrolled_students if s.gpa > 0]
+        avg_gpa = sum(gpas) / len(gpas) if gpas else 0
         
-        # Create subplots
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-        
-        # Plot enrollment counts
-        ax1.bar(course_codes, enrollment_counts)
-        ax1.set_title('Course Enrollment')
-        ax1.set_xlabel('Course Code')
-        ax1.set_ylabel('Number of Students')
-        plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45)
-        
-        # Plot average GPAs
-        ax2.bar(course_codes, avg_gpas)
-        ax2.set_title('Average GPA by Course')
-        ax2.set_xlabel('Course Code')
-        ax2.set_ylabel('Average GPA')
-        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45)
-        
-        plt.tight_layout()
-        plt.savefig('course_performance.png')
-        print("Performance visualization saved as 'course_performance.png'")
-        
-    except ImportError:
-        print("Matplotlib is required for visualization. Please install it using: pip install matplotlib")
-    except Exception as e:
-        print(f"Error creating visualization: {str(e)}")
-
-def main():
-    # Example usage
-    print("Course Performance Analysis Module")
-    print("This module provides tools for analyzing and visualizing course performance.")
-    print("Import and use the following functions:")
-    print("- analyze_course_performance(course)")
-    print("- generate_performance_report(courses, output_file)")
-    print("- visualize_performance(courses)")
+        # Print course info
+        print(f"Course: {course.code}")
+        print(f"Students: {students}")
+        print(f"Average GPA: {avg_gpa:.2f}")
+        print("-" * 40)
 
 if __name__ == "__main__":
-    main()
+    print("Course Performance Analysis Module")
+    print("Available function:")
+    print("- analyze_course_performance(course)")
