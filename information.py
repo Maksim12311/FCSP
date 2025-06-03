@@ -81,13 +81,44 @@ class Course:
         self.prerequisites: Set[str] = set()
         self.professor: Optional[Professor] = None
         self.enrolled_students: Set[Student] = set()
+        self.applications: List[Professor] = []
 
     def add_prerequisite(self, code: str) -> None:
         self.prerequisites.add(code)
 
-    def assign_professor(self, prof: Professor) -> None:
+    def apply_teacher(self, prof: Professor) -> bool:
+        """Teacher applies to teach this course"""
+        if prof in self.applications:
+            return False, "You have already applied for this course"
+            
+        if self.professor == prof:
+            return False, "You are already teaching this course"
+            
+        self.applications.append(prof)
+        return True, f"Application submitted for course {self.code}"
+
+    def assign_professor(self, prof: Professor) -> bool:
+        """Assign a professor to the course"""
+        if prof not in self.applications:
+            return False, "Professor must apply first"
+            
+        if self.professor:
+            return False, "Course already has a professor"
+            
         self.professor = prof
         prof.courses_taught.add(self.code)
+        self.applications.remove(prof)
+        return True, f"Professor {prof.full_name} assigned to course {self.code}"
+
+    def get_applications(self) -> List[Professor]:
+        """Get list of professors who applied"""
+        return self.applications
+
+    def get_teaching_info(self) -> str:
+        """Get information about who is teaching the course"""
+        if not self.professor:
+            return f"Course {self.code} ({self.name}) has no assigned professor"
+        return f"Course {self.code} ({self.name}) is taught by {self.professor.full_name}"
 
 def validate_student_data(name: str, surname: str, dob: str, area: str, citizen: str) -> tuple[bool, str]:
     if not all([name, surname, dob, area, citizen]):
