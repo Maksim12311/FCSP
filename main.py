@@ -149,47 +149,29 @@ class StudentManagementSystem:
         }
 
     def generate_truth_table(self, op: str) -> None:
-        """Generate and display a truth table for logical operations"""
-        print(f"\nTruth Table: {op.upper()}")
-        print("-" * 30)
+        """Generate and display a truth table for course registration status"""
+        print("\nTruth Table: Course Registration Status")
+        print("-" * 50)
+        print("Student Active\tCourse Available\tPrerequisites Met\tCan Register")
+        print("-" * 50)
         
-        if op == "and":
-            print("p\tq\tp AND q")
-            for p in [True, False]:
-                for q in [True, False]:
-                    print(f"{p}\t{q}\t{p and q}")
-                    
-        elif op == "or":
-            print("p\tq\tp OR q")
-            for p in [True, False]:
-                for q in [True, False]:
-                    print(f"{p}\t{q}\t{p or q}")
-                    
-        elif op == "not":
-            print("p\tNOT p")
-            for p in [True, False]:
-                print(f"{p}\t{not p}")
-                
-        elif op == "nand":
-            print("p\tq\tp NAND q")
-            for p in [True, False]:
-                for q in [True, False]:
-                    print(f"{p}\t{q}\t{not (p and q)}")
-                    
-        elif op == "nor":
-            print("p\tq\tp NOR q")
-            for p in [True, False]:
-                for q in [True, False]:
-                    print(f"{p}\t{q}\t{not (p or q)}")
-                    
-        elif op == "xor":
-            print("p\tq\tp XOR q")
-            for p in [True, False]:
-                for q in [True, False]:
-                    print(f"{p}\t{q}\t{p != q}")
-        else:
-            print("Error: Invalid operation")
-            print("Available operations: AND, OR, NOT, NAND, NOR, XOR")
+        # Define all possible combinations
+        conditions = [
+            (True, True, True),    # Active student, available course, prerequisites met
+            (True, True, False),   # Active student, available course, no prerequisites
+            (True, False, True),   # Active student, unavailable course, prerequisites met
+            (True, False, False),  # Active student, unavailable course, no prerequisites
+            (False, True, True),   # Inactive student, available course, prerequisites met
+            (False, True, False),  # Inactive student, available course, no prerequisites
+            (False, False, True),  # Inactive student, unavailable course, prerequisites met
+            (False, False, False)  # Inactive student, unavailable course, no prerequisites
+        ]
+        
+        # Evaluate each combination
+        for student_active, course_available, prereqs_met in conditions:
+            # Can register if student is active AND course is available AND prerequisites are met
+            can_register = student_active and course_available and prereqs_met
+            print(f"{student_active}\t\t{course_available}\t\t{prereqs_met}\t\t{can_register}")
 
 def display_menu():
     print("\n=== Menu ===")
@@ -327,13 +309,7 @@ def main():
                     print("Error: Export failed")
 
             elif choice == "11":
-                print("\nAvailable operations:")
-                print("AND, OR, NOT, NAND, NOR, XOR")
-                op = input("Operation: ").lower()
-                if not op:
-                    print("Error: Operation name required")
-                    continue
-                system.generate_truth_table(op)
+                system.generate_truth_table("")
 
             elif choice == "12":
                 system.save_data()
