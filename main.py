@@ -150,6 +150,54 @@ class StudentManagementSystem:
             'average_gpa': avg_gpa
         }
 
+    def generate_truth_table(self, operation: str) -> None:
+        """Generate and display a truth table for logical operations"""
+        print(f"\nTruth Table for {operation.upper()}")
+        print("-" * 40)
+        
+        if operation.lower() == "and":
+            print("p\tq\tp AND q")
+            print("-" * 40)
+            for p in [True, False]:
+                for q in [True, False]:
+                    print(f"{p}\t{q}\t{p and q}")
+                    
+        elif operation.lower() == "or":
+            print("p\tq\tp OR q")
+            print("-" * 40)
+            for p in [True, False]:
+                for q in [True, False]:
+                    print(f"{p}\t{q}\t{p or q}")
+                    
+        elif operation.lower() == "not":
+            print("p\tNOT p")
+            print("-" * 20)
+            for p in [True, False]:
+                print(f"{p}\t{not p}")
+                
+        elif operation.lower() == "nand":
+            print("p\tq\tp NAND q")
+            print("-" * 40)
+            for p in [True, False]:
+                for q in [True, False]:
+                    print(f"{p}\t{q}\t{not (p and q)}")
+                    
+        elif operation.lower() == "nor":
+            print("p\tq\tp NOR q")
+            print("-" * 40)
+            for p in [True, False]:
+                for q in [True, False]:
+                    print(f"{p}\t{q}\t{not (p or q)}")
+                    
+        elif operation.lower() == "xor":
+            print("p\tq\tp XOR q")
+            print("-" * 40)
+            for p in [True, False]:
+                for q in [True, False]:
+                    print(f"{p}\t{q}\t{p != q}")
+        else:
+            print("Invalid operation! Available operations: AND, OR, NOT, NAND, NOR, XOR")
+
 def display_menu():
     print("\n=== Student Management System ===")
     print("1. Add Student")
@@ -162,7 +210,8 @@ def display_menu():
     print("8. Sort Students")
     print("9. Analyze Performance")
     print("10. Export to CSV")
-    print("11. Exit")
+    print("11. Generate Truth Table")
+    print("12. Exit")
     print("==============================")
 
 def main():
@@ -170,7 +219,7 @@ def main():
     
     while True:
         display_menu()
-        choice = input("Enter your choice (1-11): ")
+        choice = input("Enter your choice (1-12): ")
 
         try:
             if choice == "1":
@@ -286,6 +335,17 @@ def main():
                     print("Error exporting data!")
 
             elif choice == "11":
+                print("\nAvailable operations:")
+                print("1. AND")
+                print("2. OR")
+                print("3. NOT")
+                print("4. NAND")
+                print("5. NOR")
+                print("6. XOR")
+                operation = input("Enter operation name: ").lower()
+                system.generate_truth_table(operation)
+
+            elif choice == "12":
                 system.save_data()
                 print("Thank you for using the Student Management System!")
                 break
