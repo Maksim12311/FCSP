@@ -83,24 +83,37 @@ class StudentManagementSystem:
 
     def add_grade(self, student_name: str, course_code: str, grade: Grade) -> bool:
         """Add a grade for a student in a course"""
-        student = next((s for s in self.students if s.full_name == student_name), None)
+        student = self.get_student(student_name)
         if not student:
             print(f"Error: Student '{student_name}' not found")
             return False
-        if not course_code in student.courses:
-            print(f"Error: Student not enrolled in course '{course_code}'")
+            
+        course = self.get_course(course_code)
+        if not course:
+            print(f"Error: Course '{course_code}' not found")
+            return False
+            
+        if student not in course.enrolled_students:
+            print(f"Error: Student {student_name} is not enrolled in course {course_code}")
             return False
             
         student.add_grade(course_code, grade)
+        print(f"Success: Added grade for {student_name} in {course_code}")
         return True
 
     def get_student(self, name: str) -> Optional[Student]:
         """Get a student by name"""
-        return next((s for s in self.students if s.full_name == name), None)
+        for student in self.students:
+            if student.full_name.lower() == name.lower():
+                return student
+        return None
 
     def get_course(self, code: str) -> Optional[Course]:
         """Get a course by code"""
-        return next((c for c in self.courses if c.code == code), None)
+        for course in self.courses:
+            if course.code.lower() == code.lower():
+                return course
+        return None
 
     def get_professor(self, name: str) -> Optional[Professor]:
         """Get a professor by name"""
@@ -252,38 +265,42 @@ def main():
                     print("Info: No students in system")
 
             elif choice == "6":
-                student = input("Student: ")
-                course = input("Course: ")
+                student_name = input("Enter student name: ")
+                course_code = input("Enter course code: ")
                 try:
-                    grade = float(input("Grade: "))
-                    if not (0 <= grade <= 100):
+                    grade_value = float(input("Enter grade (0-100): "))
+                    if not (0 <= grade_value <= 100):
                         print("Error: Grade must be between 0 and 100")
                         continue
-                    weight = float(input("Weight: "))
+                    weight = float(input("Enter weight (0-1): "))
                     if not (0 < weight <= 1):
                         print("Error: Weight must be between 0 and 1")
                         continue
-                except ValueError:
-                    print("Error: Grade and weight must be numbers")
-                    continue
+                    date = input("Enter date (DD-MM-YYYY): ")
                     
-                date = input("Date: ")
-                if system.add_grade(student, course, Grade(grade, weight, date)):
-                    print("Success: Grade added")
+                    grade = Grade(grade_value, weight, date)
+                    system.add_grade(student_name, course_code, grade)
+                except ValueError:
+                    print("Error: Invalid grade or weight format")
 
             elif choice == "7":
-                query = input("Search: ")
-                by = input("By (name/area): ")
-                if by not in ["name", "area"]:
-                    print("Error: Search by must be 'name' or 'area'")
+                query = input("Enter student name to search: ")
+                if not query:
+                    print("Error: Search query cannot be empty")
                     continue
                     
-                results = search_students(system.students, query, by)
-                if results:
-                    for s in results:
-                        print(f"{s.full_name} (GPA: {s.gpa:.2f})")
+                student = system.get_student(query)
+                if student:
+                    print(f"\nFound student: {student.full_name}")
+                    print(f"Area of study: {student.area_of_study}")
+                    print(f"GPA: {student.gpa:.2f}")
+                    print(f"Active: {'Yes' if student.is_active else 'No'}")
+                    if student.courses:
+                        print("\nEnrolled courses:")
+                        for course_code, grades in student.courses.items():
+                            print(f"- {course_code}: {len(grades)} grades")
                 else:
-                    print("Info: No matching students found")
+                    print(f"No student found with name: {query}")
 
             elif choice == "8":
                 by = input("Sort by (gpa/name): ")
